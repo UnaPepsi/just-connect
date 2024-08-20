@@ -49,7 +49,7 @@ class Login(ctk.CTk):
 		self.logo_label.place(anchor='ne',relx=0.72,rely=0.1)
 
 		self.jc_label = ctk.CTkLabel(self,text="JAVACONNECT",font=self.font_subtitle,width=125)
-		self.jc_label.place(anchor='e',relx=0.89,rely=0.13)
+		self.jc_label.place(anchor='e',relx=0.85,rely=0.13)
 		self.jc_label.place
 
 		self.main_logo = ctk.CTkImage(Image.open('assets\\j.png'),size=(400,400))
@@ -62,30 +62,42 @@ class Login(ctk.CTk):
 
 
 		self.username_label = ctk.CTkLabel(self,text=('Usuario'), width = 30, height = 50,font=self.font_subtitle,pady=10)
-		self.username_label.place(anchor='center', relx=0.5, rely=0.4)
+		self.username_label.place(anchor='center', relx=0.5, rely=0.32)
 
 
-		self.login_text = ctk.CTkEntry(self,height=30, width=300,font=self.font_subtitle)
-		self.login_text.place(anchor='center', relx=0.5, rely=0.5)
+		self.login_text = ctk.CTkEntry(self,height=30, width=273,font=self.font_subtitle)
+		self.login_text.place(anchor='center', relx=0.5, rely=0.38)
 		# login_text.place(anchor = 'e',relx=0.9,rely=0.4)
 
 		self.passwd_label = ctk.CTkLabel(self,text=('Contraseña'), width = 30, height = 50,font=self.font_subtitle,pady=10)
-		self.passwd_label.place(anchor='center', relx=0.5, rely=0.6)
+		self.passwd_label.place(anchor='center', relx=0.5, rely=0.44)
 
-		self.passwd_text = ctk.CTkEntry(self,height=30,width=300,show='*',font=self.font_subtitle)
-		self.passwd_text.place(anchor='center', relx=0.5, rely=0.7)
+		self.passwd_text = ctk.CTkEntry(self,height=30,width=273,show='*',font=self.font_subtitle)
+		self.passwd_text.place(anchor='center', relx=0.5, rely=0.5)
 		# passwd_text.place(anchor = 'e',relx=0.9,rely=0.5)
 
 
-		self.button = ctk.CTkButton(self, text='Log-in', command = self._button_callback,width=300,height=35)
-		self.button.place(anchor='center', relx=0.5, rely=0.8)
+		self.button = ctk.CTkButton(self, text='Log-in', command = self._button_callback,width=273,height=35)
+		self.button.place(anchor='center', relx=0.5, rely=0.58)
+
+
+		self.register_label = ctk.CTkLabel(self, text='¿No tienes una cuenta?', font=self.font_subtitle)
+		self.register_label.place(anchor='center', relx=0.5, rely=0.68)
+		self.register_button = ctk.CTkButton(self, text='Registrate', command=self.open_register_form, width=150, height=35)
+		self.register_button.place(anchor='center', relx=0.68, rely=0.68)
+
+	def open_register_form(self):
+			self.destroy()
+			Register(1200, 800).maginloop()
 
 class Register(Login):
 	def __init__(self, width: int, height: int):
 		super().__init__(width, height)
 		self.login_label.configure(text='REGISTRO')
 		self.button.configure(text='Registrarse')
-
+		self.register_button.configure(text='Log-in', command=self.open_login_form)
+		self.register_label.configure(text='¿Ya tienes una cuenta?')
+	
 	def _button_callback(self):
 		user = self.login_text.get()
 		passwd = self.passwd_text.get()
@@ -101,5 +113,9 @@ class Register(Login):
 			self.destroy()
 			Login(1200,800).mainloop()
 
+	def open_login_form(self):
+		self.destroy()
+		Login(1200, 800).mainloop()
+	
 login = Login(1200,800)
 login.mainloop()
