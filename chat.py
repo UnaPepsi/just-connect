@@ -11,5 +11,5 @@ scroll.configure(command=text.yview)
 text.configure(yscrollcommand=scroll.set)
 text.pack(side='left', fill='both', expand=True)
 
-
+window.geometry('1200x800')
 window.mainloop()
