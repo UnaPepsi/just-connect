@@ -38,21 +38,21 @@ class Login(ctk.CTk):
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Register(1200,800).mainloop()
+			Register(981,610).mainloop()
 
 	def _enable_widgets(self):
-		self.white_left = ctk.CTkLabel(self,text='',bg_color='#EEEFF0',width=400,height=800)
+		self.white_left = ctk.CTkLabel(self,text='',bg_color='#EEEFF0',width=283,height=610)
 		self.white_left.place(anchor='nw')
 
-		self.logo = ctk.CTkImage(Image.open('assets\\logo.ico'),size=(45,45))
+		self.logo = ctk.CTkImage(Image.open('assets\\logo.ico'),size=(35,35))
 		self.logo_label = ctk.CTkLabel(self,image=self.logo,text='')
-		self.logo_label.place(anchor='ne',relx=0.72,rely=0.1)
+		self.logo_label.place(anchor='center',relx=0.72,rely=0.25)
 
-		self.jc_label = ctk.CTkLabel(self,text="JAVACONNECT",font=self.font_subtitle,width=125)
-		self.jc_label.place(anchor='e',relx=0.85,rely=0.13)
+		self.jc_label = ctk.CTkLabel(self,text="Java Connect",font=self.font_subtitle,width=125)
+		self.jc_label.place(anchor='e',relx=0.88,rely=0.25)
 		self.jc_label.place
 
-		self.main_logo = ctk.CTkImage(Image.open('assets\\j.png'),size=(400,400))
+		self.main_logo = ctk.CTkImage(Image.open('assets\\j.png'),size=(283,283))
 		self.main_logo_label = ctk.CTkLabel(self,image=self.main_logo,text='')
 		self.main_logo_label.place(anchor='w',relx=0.0,rely=0.5)
 
@@ -62,33 +62,35 @@ class Login(ctk.CTk):
 
 
 		self.username_label = ctk.CTkLabel(self,text=('Usuario'), width = 30, height = 50,font=self.font_subtitle,pady=10)
-		self.username_label.place(anchor='center', relx=0.5, rely=0.32)
+		self.username_label.place(anchor='e', relx=0.44, rely=0.38)
 
 
-		self.login_text = ctk.CTkEntry(self,height=30, width=273,font=self.font_subtitle)
-		self.login_text.place(anchor='center', relx=0.5, rely=0.38)
+		self.login_text = ctk.CTkEntry(self,height=30, width=273,font=self.font_subtitle,fg_color='#242424',border_color='#242424',placeholder_text='Nombre de usuario')
+		self.login_text.place(anchor='center', relx=0.5, rely=0.46)
 		# login_text.place(anchor = 'e',relx=0.9,rely=0.4)
 
-		self.passwd_label = ctk.CTkLabel(self,text=('Contraseña'), width = 30, height = 50,font=self.font_subtitle,pady=10)
-		self.passwd_label.place(anchor='center', relx=0.5, rely=0.44)
 
-		self.passwd_text = ctk.CTkEntry(self,height=30,width=273,show='*',font=self.font_subtitle)
-		self.passwd_text.place(anchor='center', relx=0.5, rely=0.5)
+		self.passwd_label = ctk.CTkLabel(self,text=('Contraseña'), width = 30, height = 50,font=self.font_subtitle,pady=10)
+		self.passwd_label.place(anchor='center', relx=0.42, rely=0.54)
+
+
+		self.passwd_text = ctk.CTkEntry(self,height=30,width=273,show='*',font=self.font_subtitle,fg_color='#242424',border_color='#242424',placeholder_text='*******')
+		self.passwd_text.place(anchor='center', relx=0.5, rely=0.6)
 		# passwd_text.place(anchor = 'e',relx=0.9,rely=0.5)
 
 
-		self.button = ctk.CTkButton(self, text='Log-in', command = self._button_callback,width=273,height=35)
-		self.button.place(anchor='center', relx=0.5, rely=0.58)
+		self.button = ctk.CTkButton(self, text='Log-in', command = self._button_callback,width=273,height=35,fg_color='#eeeff0',hover_color='#3D3D3D',text_color='#242424')
+		self.button.place(anchor='center', relx=0.5, rely=0.68)
 
 
 		self.register_label = ctk.CTkLabel(self, text='¿No tienes una cuenta?', font=self.font_subtitle)
-		self.register_label.place(anchor='center', relx=0.5, rely=0.68)
-		self.register_button = ctk.CTkButton(self, text='Registrate', command=self.open_register_form, width=150, height=35)
-		self.register_button.place(anchor='center', relx=0.68, rely=0.68)
+		self.register_label.place(anchor='center', relx=0.43, rely=0.95)
+		self.register_button = ctk.CTkButton(self, text='Registrate', command=self.open_register_form, width=35, height=35,fg_color='#242424',hover_color='#3D3D3D')
+		self.register_button.place(anchor='center', relx=0.58, rely=0.95)
 
 	def open_register_form(self):
 			self.destroy()
-			Register(1200, 800).maginloop()
+			Register(981,610).mainloop()
 
 class Register(Login):
 	def __init__(self, width: int, height: int):
@@ -111,11 +113,11 @@ class Register(Login):
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Login(1200,800).mainloop()
+			Login(981,610).mainloop()
 
 	def open_login_form(self):
 		self.destroy()
-		Login(1200, 800).mainloop()
+		Login(981,610).mainloop()
 	
-login = Login(1200,800)
+login = Login(981,610)
 login.mainloop()
