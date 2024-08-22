@@ -17,7 +17,7 @@ class Login(ctk.CTk):
 		super().__init__()
 		self.font_subtitle = ctk.CTkFont('SegoeUi',size=20,weight='bold')
 		self.font_title = ctk.CTkFont('SegoeUi',size=35,weight='bold')
-		self.title('JustConnect')
+		self.title('Java Connect')
 		self.geometry(center_window_to_display(self, width, height))
 		self.resizable(False, False)
 		self.iconbitmap('assets\\logo.ico')
