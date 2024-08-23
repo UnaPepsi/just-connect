@@ -2,7 +2,7 @@ import requests
 from requests.exceptions import ReadTimeout, ConnectionError, ConnectTimeout
 from typing import Optional
 
-BASE = 'http://fun.guimx.me/jaja'
+BASE = 'https://fun.guimx.me/jaja'
 
 class BaseException(Exception):
     ...
