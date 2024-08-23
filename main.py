@@ -3,6 +3,7 @@ from tkinter import messagebox
 import sendrequests
 from PIL import Image
 from typing import Dict, Any
+from chat import Chat
 
 def center_window_to_display(screen: ctk.CTk, width: int, height: int, scale_factor: float = 1.0) -> str:
 	screen_width = screen.winfo_screenwidth()
@@ -38,7 +39,7 @@ class Login(ctk.CTk):
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Register(981,610).mainloop()
+			Chat(1800,800).mainloop()
 
 	def _enable_widgets(self):
 		self.white_left = ctk.CTkLabel(self,text='',bg_color='#EEEFF0',width=283,height=610)
@@ -113,7 +114,7 @@ class Register(Login):
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Login(981,610).mainloop()
+			Chat(1800,800).mainloop()
 
 	def open_login_form(self):
 		self.destroy()
