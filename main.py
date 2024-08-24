@@ -34,12 +34,13 @@ class Login(ctk.CTk):
 			return
 		try:
 			data: Dict[str,Any] = sendrequests.login(user, passwd)
+			token: str = data['info']['token']
 		except sendrequests.BaseException as e:
 			messagebox.showerror('Error', str(e))
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Chat(1800,800).mainloop()
+			Chat(1800,800,token).mainloop()
 
 	def _enable_widgets(self):
 		self.white_left = ctk.CTkLabel(self,text='',bg_color='#EEEFF0',width=283,height=610)
@@ -59,26 +60,18 @@ class Login(ctk.CTk):
 
 		self.login_label = ctk.CTkLabel(self,text=('INICIAR SESIÓN'), width = 30, height = 50,font=self.font_title,padx=30)
 		self.login_label.place(anchor='center', relx=0.5, rely=0.25)
-		# login_label.place(anchor='e',relx=0.9,rely=0.3)
-
 
 		self.username_label = ctk.CTkLabel(self,text=('Usuario'), width = 30, height = 50,font=self.font_subtitle,pady=10)
 		self.username_label.place(anchor='e', relx=0.44, rely=0.38)
 
-
 		self.login_text = ctk.CTkEntry(self,height=30, width=273,font=self.font_subtitle,fg_color='#242424',border_color='#242424',placeholder_text='Nombre de usuario')
 		self.login_text.place(anchor='center', relx=0.5, rely=0.46)
-		# login_text.place(anchor = 'e',relx=0.9,rely=0.4)
-
 
 		self.passwd_label = ctk.CTkLabel(self,text=('Contraseña'), width = 30, height = 50,font=self.font_subtitle,pady=10)
 		self.passwd_label.place(anchor='center', relx=0.42, rely=0.54)
 
-
 		self.passwd_text = ctk.CTkEntry(self,height=30,width=273,show='*',font=self.font_subtitle,fg_color='#242424',border_color='#242424',placeholder_text='*******')
 		self.passwd_text.place(anchor='center', relx=0.5, rely=0.6)
-		# passwd_text.place(anchor = 'e',relx=0.9,rely=0.5)
-
 
 		self.button = ctk.CTkButton(self, text='Log-in', command = self._button_callback,width=273,height=35,fg_color='#eeeff0',hover_color='#3D3D3D',text_color='#242424')
 		self.button.place(anchor='center', relx=0.5, rely=0.68)
@@ -109,12 +102,13 @@ class Register(Login):
 			return
 		try:
 			data: Dict[str,Any] = sendrequests.register(user, passwd)
+			token: str = data['info']['token']
 		except sendrequests.BaseException as e:
 			messagebox.showerror('Error', str(e))
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Chat(1800,800).mainloop()
+			Chat(1800,800,token).mainloop()
 
 	def open_login_form(self):
 		self.destroy()
