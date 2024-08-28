@@ -21,17 +21,19 @@ load_dotenv("config.env")
 WS = 'wss://fun.guimx.me/ws/'
 
 class Chat(ctk.CTk):
-	def __init__(self, width: int, height: int, token: str, color: str = '#242424'):
-		super().__init__(fg_color=color)
+	def __init__(self, width: int, height: int, token: str, user_name: str):
+		super().__init__()
+		self.user_name = user_name
 		self._bg_color = os.getenv("BACKGROUND_COLOR")
 		self._text_input_color = os.getenv("INPUT_BAR_COLOR")
 		self._bubble_text_color = os.getenv("TEXT_BUUBLE_COLOR")
 		self._message_text_color = os.getenv("TEXT_COLOR")
 
 		self.CONTACT_FONT = ctk.CTkFont(family='Arial', size=20, weight='bold')
+		self.iconbitmap('assets\\logo.ico')
 		self.width = width
 		self.height = height
-		self.token = token
+		self._token = token
 		self.resizable(False, False)
 		self.geometry(self.center_window_to_display(self, width, height))
 		self._enable_widgets()
@@ -42,6 +44,13 @@ class Chat(ctk.CTk):
 		self.rate_limited = False
 		self.pending_messages = []
 		self._custom_settings: Optional['Settings'] = None
+
+	@property
+	def token(self):
+		return self._token
+	@token.setter
+	def token(self, value: str):
+		self._token = value
 
 	@property
 	def bg_color(self):
@@ -113,7 +122,7 @@ class Chat(ctk.CTk):
 	def setings_button_callback(self):
 		self.withdraw()
 		if self._custom_settings is None or self._custom_settings.winfo_exists:
-			self._custom_settings = Settings(960,610,self)
+			self._custom_settings = Settings(960,610,self,self.user_name)
 		else:
 			self._custom_settings.focus()
 		self._custom_settings.update_pfp()
