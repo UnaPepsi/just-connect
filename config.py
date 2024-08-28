@@ -4,8 +4,10 @@ import shutil
 from dotenv import load_dotenv, set_key
 from customtkinter import filedialog 
 from PIL import Image,ImageDraw, ImageOps
-from tkinter import colorchooser
+from tkinter import colorchooser, messagebox
 from typing import TYPE_CHECKING
+import sendrequests
+from io import BytesIO
 
 if TYPE_CHECKING:
 	from chat import Chat
@@ -25,9 +27,10 @@ selected_values = {
 
 
 class Settings(ctk.CTkToplevel):
-	def __init__(self,width: int, height: int, chat_window: 'Chat'):
+	def __init__(self,width: int, height: int, chat_window: 'Chat',user_name: str):
 		super().__init__()
 		# self.pfp = None
+		self._user_name = user_name
 		self.chat_window = chat_window
 		self.pfp_path = os.getenv('PROFILE_PHOTO')
 		self.title('Java Connect')
@@ -109,6 +112,19 @@ class Settings(ctk.CTkToplevel):
 			set_key("config.env", "PROFILE_PHOTO", selected_values['final_Pfp_value'])
 		self.update_pfp()
 
+		user = self.username.get()
+		password = self.password.get()
+		buffer = BytesIO()
+		self.circular_pfp.save(buffer, format='PNG')
+		buffer.seek(0)
+		try:
+			data = sendrequests.edit_user(self.chat_window.token,user,password,buffer.getvalue())
+			self.chat_window.token = data['info']['new_token']
+		except sendrequests.BaseException as e:
+			messagebox.showerror('Error', str(e))
+		else:
+			messagebox.showinfo('Éxito','Información actualizada :D')
+
 	def update_pfp(self):
 		self.pfp_path = selected_values['final_Pfp_value']
 		if not self.pfp_path:
@@ -129,7 +145,7 @@ class Settings(ctk.CTkToplevel):
 		self.pfp_button.grid(row=0,column=0,padx=(135,0),pady=(70,0))
 
 
-		self.username=ctk.CTkEntry(self,placeholder_text='Test',height=30, width=273,font=ctk.CTkFont('SegoeUi',size=20),fg_color='#242424',border_color='#242424')
+		self.username=ctk.CTkEntry(self,placeholder_text=self._user_name,height=30, width=273,font=ctk.CTkFont('SegoeUi',size=20),fg_color='#242424',border_color='#242424')
 		self.username.grid(row=0,column=1,stick='W',padx=(10,0),pady=(70,0))
 
 		self.password = ctk.CTkEntry(self,placeholder_text='****',height=30, width=273,font=ctk.CTkFont('SegoeUi',size=20),fg_color='#242424',border_color='#242424')

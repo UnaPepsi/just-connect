@@ -40,7 +40,7 @@ class Login(ctk.CTk):
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Chat(1800,800,token).mainloop()
+			Chat(1800,800,token,user).mainloop()
 
 	def _enable_widgets(self):
 		self.white_left = ctk.CTkLabel(self,text='',bg_color='#EEEFF0',width=283,height=610)
@@ -108,7 +108,7 @@ class Register(Login):
 			self.passwd_text.delete(0, 'end')
 		else:
 			self.destroy()
-			Chat(1800,800,token).mainloop()
+			Chat(1800,800,token,user).mainloop()
 
 	def open_login_form(self):
 		self.destroy()

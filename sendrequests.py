@@ -87,4 +87,30 @@ def send_message(token: str, recipient: str, message: str, file: Optional[bytes]
 		raise RateLimited('Estás enviando muchas peticiones, intenta más tarde')
 	if resp.status_code in (401, 403):
 		raise BadCredentials('Credenciales incorrectas. Este error no debería pasar...')
-	
+	else:
+		raise BaseException('Error desconocido')
+
+def edit_user(token: str,new_user: Optional[str], new_password: Optional[str] = None, pfp: Optional[bytes] = None):
+	"""
+	Manda un POST request edit
+	Parameters
+	----------
+	token : `str`
+		El token de autenticación
+	new_password : `Optional[str]`
+		La nueva contraseña
+	pfp : `Optional[bytes]`
+		La foto de perfil
+	"""
+	body = {'auth': token, 'new_name':new_user, 'new_passwd': new_password}
+	if pfp is not None:
+		body['pfp'] = b64encode(pfp).decode('utf-8')
+	resp = requests.post(f'{BASE}/edit', json=body)
+	if resp.status_code == 200:
+		return resp.json()
+	if resp.status_code == 429:
+		raise RateLimited('Estás enviando muchas peticiones, intenta más tarde')
+	if resp.status_code in (401, 403, 400):
+		raise BadCredentials('Credenciales incorrectas. Este error no debería pasar...')
+	else:
+		raise BaseException(f'Error desconocido: {resp.status_code}')
