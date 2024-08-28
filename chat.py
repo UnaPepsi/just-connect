@@ -1,5 +1,5 @@
 from PIL import Image
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union, TYPE_CHECKING
 import customtkinter as ctk
 from tkinter import Event, Text, Entry, Widget, messagebox
 import sendrequests
@@ -11,6 +11,10 @@ from base64 import b64decode
 from io import BytesIO
 import os
 from dotenv import load_dotenv
+from config import Settings
+
+if TYPE_CHECKING:
+	from config import Settings
 
 load_dotenv("config.env")
 
@@ -18,7 +22,12 @@ WS = 'wss://fun.guimx.me/ws/'
 
 class Chat(ctk.CTk):
 	def __init__(self, width: int, height: int, token: str, color: str = '#242424'):
-		super().__init__(fg_color=color)		
+		super().__init__(fg_color=color)
+		self._bg_color = os.getenv("BACKGROUND_COLOR")
+		self._text_input_color = os.getenv("INPUT_BAR_COLOR")
+		self._bubble_text_color = os.getenv("TEXT_BUUBLE_COLOR")
+		self._message_text_color = os.getenv("TEXT_COLOR")
+
 		self.CONTACT_FONT = ctk.CTkFont(family='Arial', size=20, weight='bold')
 		self.width = width
 		self.height = height
@@ -32,6 +41,35 @@ class Chat(ctk.CTk):
 		self.get_messages(token)
 		self.rate_limited = False
 		self.pending_messages = []
+		self._custom_settings: Optional['Settings'] = None
+
+	@property
+	def bg_color(self):
+		return self._bg_color
+	@bg_color.setter
+	def bg_color(self, value: str):
+		self._bg_color = value
+		self.frame.configure(fg_color=self._bg_color)
+		self.contact_frame.configure(fg_color=self._bg_color,scrollbar_fg_color=self._bg_color)
+	@property
+	def text_input_color(self):
+		return self._text_input_color
+	@text_input_color.setter
+	def text_input_color(self, value: str):
+		self._text_input_color = value
+		self.text_input.configure(fg_color=self._text_input_color)
+	@property
+	def bubble_text_color(self):
+		return self._bubble_text_color
+	@bubble_text_color.setter
+	def bubble_text_color(self, value: str):
+		self._bubble_text_color = value
+	@property
+	def message_text_color(self):
+		return self._message_text_color
+	@message_text_color.setter
+	def message_text_color(self, value: str):
+		self._message_text_color = value
 
 	def get_messages(self, token: str):
 		def listen():
@@ -64,7 +102,25 @@ class Chat(ctk.CTk):
 		y = int((screen_height/2) - (height/2) * scale_factor)
 		return f'{width}x{height}+{x}+{y}'
 
+	@property
+	def custom_settings(self):
+		return self._custom_settings
+	
+	@custom_settings.setter
+	def custom_settings(self, value: Optional['Settings']):
+		self._custom_settings = value
+
+	def setings_button_callback(self):
+		self.withdraw()
+		if self._custom_settings is None or self._custom_settings.winfo_exists:
+			self._custom_settings = Settings(960,610,self)
+		else:
+			self._custom_settings.focus()
+		self._custom_settings.update_pfp()
+
+
 	def _enable_widgets(self):
+		
 		self.send_button = ctk.CTkButton(self,text='',command=lambda : Thread(target=self.spawn_message,daemon=True).start(),
 								   image=ctk.CTkImage(Image.open('assets\\send.png'),size=(30,30)),
 								   width=30,height=30)
@@ -73,12 +129,12 @@ class Chat(ctk.CTk):
 									image=ctk.CTkImage(Image.open('assets\\clip.png'),size=(25,25)),
 									width=30,height=30,command=self.open_attachment)
 		self.attachment_button.configure(fg_color='transparent',hover_color='#555555')
-		self.frame = ctk.CTkScrollableFrame(self,fg_color=os.getenv("BACKGROUND_COLOR"),orientation='vertical',
+		self.frame = ctk.CTkScrollableFrame(self,fg_color=self.bg_color,orientation='vertical',
 				width=int(self.width*0.60), height=self.height-80)
-		self.text_input = ctk.CTkTextbox(self,fg_color=os.getenv("INPUT_BAR_COLOR"),width=int(self.width*0.60)-80, height=35)
+		self.text_input = ctk.CTkTextbox(self,fg_color=self.text_input_color,width=int(self.width*0.60)-80, height=35)
 
-		self.contact_frame = ctk.CTkScrollableFrame(self,fg_color='#242424',orientation='vertical',
-				width=int(self.width*0.35), height=self.height-35,scrollbar_fg_color='#242424',scrollbar_button_color='#242424',
+		self.contact_frame = ctk.CTkScrollableFrame(self,fg_color=self.bg_color,orientation='vertical',
+				width=int(self.width*0.35), height=self.height-35,scrollbar_fg_color=self.bg_color,scrollbar_button_color=self.bg_color,
 				scrollbar_button_hover_color='#242424')
 		self.contact_frame.grid_columnconfigure(0, weight=1)
 		self.contact_frame.grid_columnconfigure(1, weight=0)
@@ -89,6 +145,11 @@ class Chat(ctk.CTk):
 								  image=ctk.CTkImage(Image.open('assets\\add.png'),size=(30,30)),width=30,height=30)
 		self.add_button.configure(fg_color='transparent',hover_color='#555555')
 		self.add_button.grid(row=0,column=1,sticky='e')
+
+		self.settings_button = ctk.CTkButton(self.contact_frame,text='',command= self.setings_button_callback,
+									   image=ctk.CTkImage(Image.open('assets\\settings.png'),size=(30,30)),width=30,height=30)
+		self.settings_button.configure(fg_color='transparent',hover_color='#555555')
+		
 
 	def add_contact(self):
 		if not self.add_entry.get().strip() or self.current_contact is not None and self.current_contact == self.add_entry.get(): return
@@ -104,7 +165,7 @@ class Chat(ctk.CTk):
 		#'e' para derecha, 'w' para izquierda
 		if self.current_contact is None:
 			raise ValueError('No contact selected')
-		color = os.getenv("TEXT_BUBBLE_COLOR")
+		color = self.bubble_text_color
 		if not message:
 			message = self.text_input.get('1.0', 'end').strip()
 			self.text_input.delete('1.0', 'end')
@@ -120,7 +181,7 @@ class Chat(ctk.CTk):
 						self.rate_limited = True
 						messagebox.showerror(f'Error', str(e))
 						self.rate_limited = False
-		message_box = ctk.CTkLabel(self.frame,width=200,text=message,text_color=os.getenv("TEXT_COLOR"),fg_color=color if sticky == 'e' else '#3C3C3C',
+		message_box = ctk.CTkLabel(self.frame,width=200,text=message,text_color=self.message_text_color,fg_color=color if sticky == 'e' else '#3C3C3C',
 					corner_radius=20,anchor='ne',padx=0, pady=20,wraplength=500)
 		if attachment is not None: message_box.configure(image=ctk.CTkImage(Image.open(BytesIO(attachment)),size=(200,200)),compound='bottom')
 		message_box.configure(height=message_box.winfo_reqheight()+28) #For some reason text in label f*cks up the height and it looks bad
@@ -148,6 +209,7 @@ class Chat(ctk.CTk):
 			self.text_input.place(anchor='se',x=self.width-115,y=self.height-10)
 			self.send_button.place(anchor='se',x=self.width-10,y=self.height-10)
 			self.attachment_button.place(anchor='se',x=self.width-60,y=self.height-11) #bruh
+			self.settings_button.grid(row=0,column=2,sticky='e')
 		else:
 			for widget in self.frame.winfo_children():
 				widget.grid_forget()
@@ -177,3 +239,5 @@ class Chat(ctk.CTk):
 		for widget,grid_info in saved_widgets:
 			widget.configure(fg_color="red")  #type: ignore
 			widget.grid(**grid_info)
+
+
