@@ -1,7 +1,7 @@
 import requests
 from requests.exceptions import ReadTimeout, ConnectionError, ConnectTimeout
 from typing import Optional
-from base64 import b64encode
+from base64 import b64decode, b64encode
 
 BASE = 'https://fun.guimx.me/jaja'
 
@@ -14,6 +14,8 @@ class Timeout(BaseException):
 class RateLimited(BaseException):
 	...
 class UsernameInUse(BaseException):
+	...
+class UserNotFound(BaseException):
 	...
 
 def login(username: str, password: str):
@@ -93,6 +95,7 @@ def send_message(token: str, recipient: str, message: str, file: Optional[bytes]
 def edit_user(token: str,new_user: Optional[str], new_password: Optional[str] = None, pfp: Optional[bytes] = None):
 	"""
 	Manda un POST request edit
+
 	Parameters
 	----------
 	token : `str`
@@ -102,7 +105,9 @@ def edit_user(token: str,new_user: Optional[str], new_password: Optional[str] = 
 	pfp : `Optional[bytes]`
 		La foto de perfil
 	"""
-	body = {'auth': token, 'new_name':new_user, 'new_passwd': new_password}
+	body = {'auth': token, 'new_name':new_user}
+	if new_password:
+		body['new_passwd'] = new_password	
 	if pfp is not None:
 		body['pfp'] = b64encode(pfp).decode('utf-8')
 	resp = requests.post(f'{BASE}/edit', json=body)
@@ -112,5 +117,24 @@ def edit_user(token: str,new_user: Optional[str], new_password: Optional[str] = 
 		raise RateLimited('Estás enviando muchas peticiones, intenta más tarde')
 	if resp.status_code in (401, 403, 400):
 		raise BadCredentials('Credenciales incorrectas. Este error no debería pasar...')
+	else:
+		raise BaseException(f'Error desconocido: {resp.status_code}')
+	
+def load_other_pfp(user: str):
+	"""
+	Manda un GET request pfp
+
+	Parameters
+	----------
+	user : `str`
+		El nombre de usuario
+	"""
+	resp = requests.get(f'{BASE}/pfp?name={user}')
+	if resp.status_code == 200:
+		return b64decode(resp.json()['info']['pfp'])
+	if resp.status_code == 429:
+		raise RateLimited('Estás enviando muchas peticiones, intenta más tarde')
+	if resp.status_code == 404:
+		raise UserNotFound('Usuario no encontrado')
 	else:
 		raise BaseException(f'Error desconocido: {resp.status_code}')

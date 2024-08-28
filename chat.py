@@ -26,8 +26,10 @@ class Chat(ctk.CTk):
 		self.user_name = user_name
 		self._bg_color = os.getenv("BACKGROUND_COLOR")
 		self._text_input_color = os.getenv("INPUT_BAR_COLOR")
-		self._bubble_text_color = os.getenv("TEXT_BUUBLE_COLOR")
+		self._bubble_text_color = os.getenv("TEXT_BUBBLE_COLOR")
 		self._message_text_color = os.getenv("TEXT_COLOR")
+		
+
 
 		self.CONTACT_FONT = ctk.CTkFont(family='Arial', size=20, weight='bold')
 		self.iconbitmap('assets\\logo.ico')
@@ -121,11 +123,10 @@ class Chat(ctk.CTk):
 
 	def setings_button_callback(self):
 		self.withdraw()
-		if self._custom_settings is None or self._custom_settings.winfo_exists:
+		if self._custom_settings is None or self._custom_settings.winfo_exists():
 			self._custom_settings = Settings(960,610,self,self.user_name)
 		else:
 			self._custom_settings.focus()
-		self._custom_settings.update_pfp()
 
 
 	def _enable_widgets(self):
@@ -162,8 +163,13 @@ class Chat(ctk.CTk):
 
 	def add_contact(self):
 		if not self.add_entry.get().strip() or self.current_contact is not None and self.current_contact == self.add_entry.get(): return
+		try:
+			data = sendrequests.load_other_pfp(self.add_entry.get())
+		except sendrequests.BaseException as e:
+			messagebox.showerror('Error', str(e))
+			return
 		contact = ctk.CTkButton(self.contact_frame,text=self.add_entry.get(),fg_color='#242424',hover_color='#555555',anchor='w',
-						  height=70)
+						  height=70,image=ctk.CTkImage(Image.open(BytesIO(data)),size=(50,50)),compound='left')
 		contact.bind('<Button-1>',lambda e: self.contact_button_clicked(contact.cget('text')))
 		contact.configure(font=self.CONTACT_FONT)
 		contact.grid(row=len(self.contact_frame.children), column=0, sticky='we',pady=(20, 10))
@@ -194,7 +200,7 @@ class Chat(ctk.CTk):
 					corner_radius=20,anchor='ne',padx=0, pady=20,wraplength=500)
 		if attachment is not None: message_box.configure(image=ctk.CTkImage(Image.open(BytesIO(attachment)),size=(200,200)),compound='bottom')
 		message_box.configure(height=message_box.winfo_reqheight()+28) #For some reason text in label f*cks up the height and it looks bad
-		message_box.grid(row=len(self.messages), column=0, sticky=sticky,pady=(20, 0))
+		message_box.grid(row=len(self.messages)+1, column=0, sticky=sticky,pady=(20, 0))
 		self.frame._parent_canvas.update_idletasks()
 		self.frame._parent_canvas.config(scrollregion=self.frame._parent_canvas.bbox("all"))
 		self.frame._parent_canvas.yview_moveto(1.0)
@@ -232,7 +238,6 @@ class Chat(ctk.CTk):
 
 	def open_attachment(self):
 		file = ctk.filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png;")])
-		print(file)
 		if file:
 			with open(file,'rb') as f:
 				self.spawn_message('e',attachment=f.read())
