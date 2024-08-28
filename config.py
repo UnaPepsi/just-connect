@@ -89,8 +89,8 @@ class Settings(ctk.CTkToplevel):
 			selected_values['final_Pfp_value'] = fr"assets\{pfp_name_string}"#we save the final path of the file inside assets
 
 	def back_button_callback(self):
-		self.destroy()
-		self.chat_window.custom_settings = None
+		self.withdraw()
+		# self.chat_window.custom_settings = None
 		self.chat_window.deiconify()
 
 	def save_button_callback(self):
@@ -100,6 +100,7 @@ class Settings(ctk.CTkToplevel):
 			self.chat_window.bg_color = selected_values['background_color']
 		if selected_values['text_color']:
 			set_key("config.env", "TEXT_COLOR", selected_values['text_color'])
+			self.chat_window._message_text_color = selected_values['text_color']
 		if selected_values['text_bubble_color']:
 			set_key("config.env", "TEXT_BUBBLE_COLOR", selected_values['text_bubble_color'])
 			self.chat_window._bubble_text_color = selected_values['text_bubble_color']
@@ -109,17 +110,23 @@ class Settings(ctk.CTkToplevel):
 		if selected_values['pfp_source_path'] and selected_values['pfp_path']:         
 			shutil.copy2(selected_values['pfp_source_path'], selected_values['pfp_path'])
 		if selected_values['final_Pfp_value']:
+			pfp_changed = True
 			set_key("config.env", "PROFILE_PHOTO", selected_values['final_Pfp_value'])
+		else:
+			pfp_changed = False
 		self.update_pfp()
 
 		user = self.username.get()
 		password = self.password.get()
+
 		buffer = BytesIO()
 		self.circular_pfp.save(buffer, format='PNG')
 		buffer.seek(0)
 		try:
-			data = sendrequests.edit_user(self.chat_window.token,user,password,buffer.getvalue())
-			self.chat_window.token = data['info']['new_token']
+			if user or password or pfp_changed:
+				data = sendrequests.edit_user(self.chat_window.token,user,password,buffer.getvalue())
+				self.chat_window.token = data['info']['new_token']
+				self._user_name = user
 		except sendrequests.BaseException as e:
 			messagebox.showerror('Error', str(e))
 		else:
