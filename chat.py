@@ -12,6 +12,7 @@ from io import BytesIO
 import os
 from dotenv import load_dotenv
 from config import Settings
+from savemessages import Writer
 
 if TYPE_CHECKING:
 	from config import Settings
@@ -23,13 +24,12 @@ WS = 'wss://fun.guimx.me/ws/'
 class Chat(ctk.CTk):
 	def __init__(self, width: int, height: int, token: str, user_name: str):
 		super().__init__()
+		self.title('Java Connect')
 		self.user_name = user_name
 		self._bg_color = os.getenv("BACKGROUND_COLOR")
 		self._text_input_color = os.getenv("INPUT_BAR_COLOR")
 		self._bubble_text_color = os.getenv("TEXT_BUBBLE_COLOR")
 		self._message_text_color = os.getenv("TEXT_COLOR")
-		
-
 
 		self.CONTACT_FONT = ctk.CTkFont(family='Arial', size=20, weight='bold')
 		self.iconbitmap('assets\\logo.ico')
@@ -46,6 +46,8 @@ class Chat(ctk.CTk):
 		self.rate_limited = False
 		self.pending_messages = []
 		self._custom_settings: Optional['Settings'] = None
+
+		self.load_messages()
 
 	@property
 	def token(self):
@@ -93,10 +95,15 @@ class Chat(ctk.CTk):
 						response = websocket.recv()
 						if isinstance(response,str):
 							info = loads(response)
+							file = info.get('file',None)
+							if file is not None:
+								file = b64decode(file)
+							info['file'] = file
+							info['is_self'] = False
+							self.write_message(info['message'],file,info['sender'],False)
 							if self.current_contact is not None and info['sender'] == self.current_contact:
-								file = info.get('file',None)
 								self.spawn_message('w',info['message'],
-						   			b64decode(file) if file is not None else None)
+						   			file)
 								#TODO: Add download file support + remove trying to display a file that isn't an image
 							else:
 								self.pending_messages.append(info)
@@ -104,6 +111,14 @@ class Chat(ctk.CTk):
 					print(f"Connection closed.")
 					exit(0)
 		Thread(target=listen,daemon=True).start()
+
+	def load_messages(self):
+		with Writer() as writer:
+			writer.create_table()
+			messages = writer.load_all()
+		for message in messages:
+			self.pending_messages.append({'sender':message.contact,'message':message.message,'file':message.file,'is_self':message.is_self})
+
 
 	@staticmethod
 	def center_window_to_display(screen: ctk.CTk, width: int, height: int, scale_factor: float = 1.0) -> str:
@@ -160,6 +175,9 @@ class Chat(ctk.CTk):
 									   image=ctk.CTkImage(Image.open('assets\\settings.png'),size=(30,30)),width=30,height=30)
 		self.settings_button.configure(fg_color='transparent',hover_color='#555555')
 		
+	def write_message(self, message: Optional[str], file: Optional[bytes], contact: str, is_self: bool):
+		with Writer() as writer:
+			writer.write(message, file, contact, is_self)
 
 	def add_contact(self):
 		if not self.add_entry.get().strip() or self.current_contact is not None and self.current_contact == self.add_entry.get(): return
@@ -179,7 +197,7 @@ class Chat(ctk.CTk):
 	def spawn_message(self, sticky: Literal['e','w'] = 'e', message: Optional[str] = None, attachment: Optional[bytes] = None):
 		#'e' para derecha, 'w' para izquierda
 		if self.current_contact is None:
-			raise ValueError('No contact selected')
+			return
 		color = self.bubble_text_color
 		if not message:
 			message = self.text_input.get('1.0', 'end').strip()
@@ -190,6 +208,8 @@ class Chat(ctk.CTk):
 				try:
 					data = sendrequests.send_message(self.token,self.current_contact,message,attachment)
 					self.rate_limited = False
+					with Writer() as writer:
+						writer.write(message,attachment,self.current_contact,True)
 				except sendrequests.RateLimited as e:
 					color = 'red'
 					if not self.rate_limited:
@@ -207,8 +227,6 @@ class Chat(ctk.CTk):
 		self.messages.append({'recipient':self.current_contact,'widgets':message_box,'grid_info':message_box.grid_info()}) #type: ignore
 
 	def on_key_press(self, event: Event):
-		if event.keysym == "h": #quick test
-			self.spawn_message('w','Hola')
 		if event.keysym == "Return":
 			self.spawn_message()
 		elif not isinstance(self.text_input.focus_get(),(Text,Entry)) and self.text_input.winfo_ismapped():
@@ -232,9 +250,10 @@ class Chat(ctk.CTk):
 				if message['recipient'] == text:
 					message['widgets'].grid(**message['grid_info']) #type: ignore
 		for pending_message in self.pending_messages.copy():
-			self.pending_messages.remove(pending_message)
 			if pending_message['sender'] == text:
-				self.spawn_message('w',pending_message['message'])
+				is_self = pending_message.get('is_self',False)
+				self.spawn_message('e' if is_self else 'w',pending_message['message'],pending_message.get('file',None))
+				self.pending_messages.remove(pending_message)
 
 	def open_attachment(self):
 		file = ctk.filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png;")])
