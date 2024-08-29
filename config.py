@@ -12,8 +12,6 @@ from io import BytesIO
 if TYPE_CHECKING:
 	from chat import Chat
 
-#variables
-
 load_dotenv("config.env")
 selected_values = {
 	'background_color': '',
@@ -29,7 +27,7 @@ selected_values = {
 class Settings(ctk.CTkToplevel):
 	def __init__(self,width: int, height: int, chat_window: 'Chat',user_name: str):
 		super().__init__()
-		# self.pfp = None
+		self.title('Java Connect')
 		self._user_name = user_name
 		self.chat_window = chat_window
 		self.pfp_path = os.getenv('PROFILE_PHOTO')
@@ -41,7 +39,6 @@ class Settings(ctk.CTkToplevel):
 	
 	@staticmethod
 	def center_window_to_display(screen: ctk.CTkToplevel, width: int, height: int, scale_factor: float = 1.0) -> str:
-	# Functions
 		screen_width = screen.winfo_screenwidth()
 		screen_height = screen.winfo_screenheight()
 		x = int((screen_width/2) - (width/2) * scale_factor)
@@ -90,7 +87,6 @@ class Settings(ctk.CTkToplevel):
 
 	def back_button_callback(self):
 		self.withdraw()
-		# self.chat_window.custom_settings = None
 		self.chat_window.deiconify()
 
 	def save_button_callback(self):
